@@ -75,7 +75,7 @@ class AbstractDataSource(ABC):
         pass
 
     # @abstractmethod
-    def downloadDataset(self):
+    def download_dataset(self):
         """Download single variable/dataset."""
         # used for non-ftp servers
         pass

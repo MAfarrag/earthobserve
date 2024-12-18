@@ -133,9 +133,9 @@ class S3(AbstractDataSource):
         for var in self.vars:
             var_info = catalog.get_dataset(var)
             var_s3_name = var_info.get("bucket_name")
-            self.downloadDataset(var_s3_name, progress_bar=progress_bar)
+            self.download_dataset(var_s3_name, progress_bar=progress_bar)
 
-    def downloadDataset(self, var: str, progress_bar: bool = True):
+    def download_dataset(self, var: str, progress_bar: bool = True):
         """Download a climate variable.
 
                     This function downloads ECMWF six-hourly, daily or monthly data.

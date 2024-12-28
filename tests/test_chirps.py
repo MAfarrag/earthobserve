@@ -29,8 +29,8 @@ def test_create_chirps_object(
     assert coello.api_url == "data.chc.ucsb.edu"
     assert coello.lon_bounds == [-180, 180]
     assert coello.lat_bounds == [-50, 50]
-    assert str(coello.dates[0].date()) == dates[0]
-    assert str(coello.dates[-1].date()) == dates[1]
+    assert str(coello.time["start_date"].date()) == dates[0]
+    assert str(coello.time["end_date"].date()) == dates[1]
 
     return coello
 

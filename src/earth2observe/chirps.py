@@ -18,7 +18,7 @@ class CHIRPS(AbstractDataSource):
     api_url: str = "data.chc.ucsb.edu"
     start_date: str = "1981-01-01"
     end_date: str = "Now"
-    temporal_resolution = ["daily", "monthly"]
+    temporal_resolutions = ["daily", "monthly"]
     lat_bounds = [-50, 50]
     lon_bounds = [-180, 180]
     globe_fname = "chirps-v2.0"
@@ -68,56 +68,52 @@ class CHIRPS(AbstractDataSource):
         )
 
     def check_input_dates(
-            self, start: str, end: str, temporal_resolution: str, fmt: str
+            self, start_date: str, end_data: str, temporal_resolution: str, fmt: str
     ):
-        """check validity of input dates.
+        """check the validity of input dates.
 
         Parameters
         ----------
         temporal_resolution: (str, optional)
             [description]. Defaults to 'daily'.
-        start: (str, optional)
+        start_date: (str, optional)
             [description]. Defaults to ''.
-        end: (str, optional)
+        end_data: (str, optional)
             [description]. Defaults to ''.
         fmt: (str, optional)
             [description]. Defaults to "%Y-%m-%d".
         """
         # check temporal_resolution variables
-        if start is None:
-            self.start = pd.Timestamp(self.start_date)
+        if start_date is None:
+            start = pd.Timestamp(self.start_date)
         else:
-            self.start = dt.datetime.strptime(start, fmt)
+            start = dt.datetime.strptime(start_date, fmt)
 
-        if end is None:
-            self.end = pd.Timestamp(self.end_date)
+        if end_data is None:
+            end = pd.Timestamp(self.end_date)
         else:
-            self.end = dt.datetime.strptime(end, fmt)
+            end = dt.datetime.strptime(end_data, fmt)
 
         # Define timestep for the timedates
         if temporal_resolution.lower() == "daily":
-            self.time_freq = "D"
-            # self.path = os.path.join(path, "precipitation", "chirps", "daily")
+            time_freq = "D"
         elif temporal_resolution.lower() == "monthly":
-            self.time_freq = "MS"
-            # self.path = os.path.join(
-            #     path, "Precipitation", "CHIRPS", "Monthly"
-            # )
+            time_freq = "MS"
         else:
             raise KeyError("The input temporal_resolution interval is not supported")
 
-        # Create days
-        self.dates = pd.date_range(self.start, self.end, freq=self.time_freq)
+        dates = pd.date_range(start, end, freq=time_freq)
+        return {"start_date": start, "end_date": end, "time_freq": time_freq, "dates": dates}
 
-    def initialize(self):
+    def initialize(self)-> FTP:
         """Initialize FTP server."""
         try:
             ftp = FTP(CHIRPS.api_url)
             ftp.login()
-        except Exception as e:
+        except Exception:
             raise AuthenticationError("Could not connect to the server")
 
-        self.server = ftp
+        return ftp
 
     def create_grid(self, lat_lim: list, lon_lim: list):
         """Create_grid.
@@ -131,8 +127,8 @@ class CHIRPS(AbstractDataSource):
         lon_lim: []
             longitude boundaries
         """
-        self.lat_lim = []
-        self.lon_lim = []
+        lat_lim_calc = []
+        lon_lim_calc = []
         # Check space variables
         # -50 , 50
         if lat_lim[0] < self.lat_bounds[0] or lat_lim[1] > self.lat_bounds[1]:
@@ -140,31 +136,33 @@ class CHIRPS(AbstractDataSource):
                 "Latitude above 50N or below 50S is not possible."
                 " Value set to maximum"
             )
-            self.lat_lim[0] = np.max(lat_lim[0], self.lat_bounds[0])
-            self.lat_lim[1] = np.min(lon_lim[1], self.lat_bounds[1])
+            lat_lim_calc[0] = np.max(lat_lim[0], self.lat_bounds[0])
+            lat_lim_calc[1] = np.min(lon_lim[1], self.lat_bounds[1])
         # -180, 180
         if lon_lim[0] < self.lon_bounds[0] or lon_lim[1] > self.lon_bounds[1]:
             print(
-                "Longitude must be between 180E and 180W."
-                " Now value is set to maximum"
+                "Longitude must be between 180E and 180W. Now value is set to maximum"
             )
-            self.lon_lim[0] = np.max(lat_lim[0], self.lon_bounds[0])
-            self.lon_lim[1] = np.min(lon_lim[1], self.lon_bounds[1])
+            lon_lim_calc[0] = np.max(lat_lim[0], self.lon_bounds[0])
+            lon_lim_calc[1] = np.min(lon_lim[1], self.lon_bounds[1])
         else:
-            self.lat_lim = lat_lim
-            self.lon_lim = lon_lim
+            lat_lim_calc = lat_lim
+            lon_lim_calc = lon_lim
 
         # Define IDs
-        self.yID = 2000 - np.int16(
+        y_id = 2000 - np.int16(
             np.array(
                 [np.ceil((lat_lim[1] + 50) * 20), np.floor((lat_lim[0] + 50) * 20)]
             )
         )
-        self.xID = np.int16(
+        x_id = np.int16(
             np.array(
                 [np.floor((lon_lim[0] + 180) * 20), np.ceil((lon_lim[1] + 180) * 20)]
             )
         )
+
+        return {"x_id": x_id, "y_id": y_id, "lat_lim": lat_lim_calc, "lon_lim": lon_lim_calc}
+
 
     def download(self, progress_bar: bool = True, cores=None, *args, **kwargs):
         """Download.
@@ -186,18 +184,18 @@ class CHIRPS(AbstractDataSource):
         """
         # Pass variables to parallel function and run
         args = [
-            self.path,
+            self.root_dir,
             self.temporal_resolution,
-            self.xID,
-            self.yID,
-            self.lon_lim,
-            self.lat_lim,
+            self.space["x_id"],
+            self.space["y_id"],
+            self.space["lon_lim"],
+            self.space["lat_lim"],
         ]
 
         if not cores:
             # Create Wait bar
             if progress_bar:
-                total_amount = len(self.dates)
+                total_amount = len(self.time["dates"])
                 amount = 0
                 print_progress_bar(
                     amount,
@@ -207,8 +205,8 @@ class CHIRPS(AbstractDataSource):
                     length=50,
                 )
 
-            for date in self.dates:
-                self.API(date, args)
+            for date in self.time["dates"]:
+                self.api(date, args)
 
                 if progress_bar:
                     amount += 1
@@ -222,11 +220,11 @@ class CHIRPS(AbstractDataSource):
             results = True
         else:
             results = Parallel(n_jobs=cores)(
-                delayed(self.API)(date, args) for date in self.dates
+                delayed(self.api)(date, args) for date in self.dates
             )
         return results
 
-    def API(self, date, args):
+    def api(self, date, args):
         """form the request url abd trigger the request.
 
         Parameters
@@ -245,7 +243,6 @@ class CHIRPS(AbstractDataSource):
         else:
             raise KeyError("The input temporal_resolution interval is not supported")
 
-        # create all the input name (filename) and output (outfilename, filetif, DiFileEnd) names
         if temp_resolution.lower() == "daily":
             filename = f"{self.globe_fname}.{date.strftime('%Y')}.{date.strftime('%m')}.{date.strftime('%d')}.tif.gz"
             out_file_name = os.path.join(
@@ -270,15 +267,13 @@ class CHIRPS(AbstractDataSource):
             )
         else:
             raise KeyError("The input temporal_resolution interval is not supported")
-        self.initialize()
-        server = self.server
-        self.callAPI(server, path_ftp, path, filename)
+
+        self.send_request(path_ftp, path, filename)
         self.post_download(
             path, filename, lon_lim, lat_lim, x_id, y_id, out_file_name, dir_file_end
         )
 
-    @staticmethod
-    def callAPI(server, ftp_path: str, path: str, filename: str):
+    def send_request(self, ftp_path: str, path: str, filename: str):
         """send the request to the server.
 
         RetrieveData method retrieves CHIRPS data for a given date from the
@@ -286,10 +281,10 @@ class CHIRPS(AbstractDataSource):
 
         Parameters
         ----------
-        server
+        ftp_path: [str]
+            path for the raster in the ftp server.
         filename
         path
-        ftp_path
 
 
         Raises
@@ -302,6 +297,7 @@ class CHIRPS(AbstractDataSource):
         bool
             DESCRIPTION.
         """
+        server = self.initialize()
         # find the document name in this directory
         server.cwd(ftp_path)
         listing = []
@@ -309,7 +305,6 @@ class CHIRPS(AbstractDataSource):
         # read all the file names in the directory
         server.retrlines("LIST", listing.append)
 
-        # download the global rainfall file
         local_filename = os.path.join(path, filename)
         lf = open(local_filename, "wb")
         server.retrbinary("RETR " + filename, lf.write, 8192)

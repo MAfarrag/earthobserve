@@ -131,11 +131,11 @@ class S3(AbstractDataSource):
         """
         catalog = Catalog()
         for var in self.vars:
-            var_info = catalog.get_variable(var)
+            var_info = catalog.get_dataset(var)
             var_s3_name = var_info.get("bucket_name")
-            self.downloadDataset(var_s3_name, progress_bar=progress_bar)
+            self.download_dataset(var_s3_name, progress_bar=progress_bar)
 
-    def downloadDataset(self, var: str, progress_bar: bool = True):
+    def download_dataset(self, var: str, progress_bar: bool = True):
         """Download a climate variable.
 
                     This function downloads ECMWF six-hourly, daily or monthly data.
@@ -202,7 +202,7 @@ class S3(AbstractDataSource):
         -------
         Download the file to your local drive.
         """
-        if not os.path.isfile(local_dir_fname):  # check if file already exists
+        if not os.path.isfile(local_dir_fname):  # check if the file already exists
             print(f"Downloading {s3_file_path} from S3...")
             try:
                 self.client.download_file(bucket, s3_file_path, local_dir_fname)
@@ -304,9 +304,9 @@ class Catalog(AbstractCatalog):
             }
         }
 
-    def get_variable(self, var_name) -> Dict[str, str]:
+    def get_dataset(self, var_name) -> Dict[str, str]:
         """get the details of a specific variable."""
-        return super().get_variable(var_name)
+        return super().get_dataset(var_name)
 
     def get_available_years(self, bucket: str = "era5-pds"):
         """The ERA5 data is chunked into distinct NetCDF files per variable, each containing a month of hourly data. These files are organized in the S3 bucket by year, month, and variable name.

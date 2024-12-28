@@ -63,7 +63,9 @@ test = [
     "coverage"
 ]
 
-
+analysis = [
+    "jupyterlab"
+]
 [tool.setuptools]
 
 [tool.setuptools.packages.find]

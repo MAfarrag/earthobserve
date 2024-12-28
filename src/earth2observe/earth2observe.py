@@ -7,7 +7,7 @@ DEFAULT_LATITUDE_LIMIT = [-90, 90]
 
 
 class Earth2Observe:
-    """End user class to call all the data source classes abailable in earth2observe."""
+    """End user class to call all the data source classes available in earth2observe."""
 
     DataSources = {"chirps": CHIRPS, "amazon-s3": S3}
 

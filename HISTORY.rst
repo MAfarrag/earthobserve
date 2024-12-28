@@ -38,3 +38,9 @@ History
 
 * add documentation
 * bump up pyramids versions
+
+0.3.0 (******)
+------------------
+
+* Replace the setup.py file with a pyproject.toml file
+*

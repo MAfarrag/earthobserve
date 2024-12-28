@@ -69,7 +69,7 @@ ECMWF
 .. code-block:: py
 
     var = "E"
-    catalog.get_variable(var)
+    catalog.get_dataset(var)
 
     >>> {
     >>>     'descriptions': 'Evaporation [m of water]',
@@ -113,7 +113,7 @@ Amazon-S3
 
 .. code-block:: py
 
-    s3_catalog.get_variable("precipitation")
+    s3_catalog.get_dataset("precipitation")
 
     >>> {
     >>>     'descriptions': 'rainfall [mm/temporal_resolution]',

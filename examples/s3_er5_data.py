@@ -5,7 +5,7 @@ from earth2observe.s3 import S3, Catalog
 #%%
 s3_catalog = Catalog()
 print(s3_catalog.catalog)
-s3_catalog.get_variable("precipitation")
+s3_catalog.get_dataset("precipitation")
 years = s3_catalog.get_available_years()
 date = "2022-05-01"
 # available_date_abs_path = s3_catalog.get_available_data(date, bucket='era5-pds', absolute_path=True)

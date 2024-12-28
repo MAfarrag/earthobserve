@@ -1,12 +1,11 @@
 import datetime as dt
-
-# import ee
 from geopandas.geodataframe import GeoDataFrame
-
-from earth2observe.gee.data import getCatalog
+from earth2observe.gee.catalog import Catalog
 from earth2observe.gee.gee import GEE
 
-catalog = getCatalog()
+
+catalog = Catalog()
+
 default_date_format = "%Y-%m-%d"
 
 
@@ -20,7 +19,7 @@ class Dataset(GEE):
         end_date: str,
         date_format: str = "%Y-%m-%d",
     ):
-        if dataset_id not in catalog["dataset"].tolist():
+        if dataset_id not in catalog.datasets:
             raise ValueError(
                 f"the given dataset: {dataset_id} does nor exist in the catalog"
             )
@@ -28,14 +27,14 @@ class Dataset(GEE):
             self.metadata = catalog.loc[catalog["dataset"] == dataset_id, :]
             self.id = id
 
-        self.start_date, self.end_date = self.getDate(
+        self.start_date, self.end_date = self.get_date(
             dataset_id, start_date, end_date, date_format
         )
         # self.catalog = catalog
         self.boundary = None
 
     @staticmethod
-    def getDate(
+    def get_date(
         dataset_id: str,
         start_date: str = None,
         end_date: str = None,
@@ -89,7 +88,7 @@ class Dataset(GEE):
 
         return start_date, end_date
 
-    def addBoundary(self, gdf: GeoDataFrame):
+    def add_boundary(self, gdf: GeoDataFrame):
         """addBoundary.
 
             addBoundary
@@ -100,7 +99,7 @@ class Dataset(GEE):
         """
         self.boundary = gdf.copy()
 
-    def filterByRegion(self, gdf: GeoDataFrame = None):
+    def filter_by_region(self, gdf: GeoDataFrame = None):
         """filterByRegion.
 
             filterByRegion

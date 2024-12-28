@@ -1,10 +1,7 @@
 """Google earth engine main script."""
 import base64
 import json
-
 import ee
-
-# import os
 
 
 class GEE:
@@ -25,7 +22,6 @@ class GEE:
         """
         self.initialize(service_account, service_key_path)
 
-        pass
 
     @staticmethod
     def initialize(service_account: str, service_key: str):
@@ -52,41 +48,3 @@ class GEE:
                 service_account, key_data=service_key
             )
         ee.Initialize(credentials=credentials)
-
-    @staticmethod
-    def encodeServiceAccount(service_key_dir: str) -> bytes:
-        """encodeServiceAccount.
-
-            decodeServiceAccount decode the service account
-
-        Parameters
-        ----------
-        service_key_dir: [str]
-
-        Returns
-        -------
-        byte string
-        """
-        content = json.load(open(service_key_dir))
-        dumped_service_account = json.dumps(content)
-        encoded_service_account = base64.b64encode(dumped_service_account.encode())
-        return encoded_service_account
-
-    @staticmethod
-    def decodeServiceAccount(service_key_bytes: bytes) -> str:
-        """decodeServiceAccount.
-
-            decodeServiceAccount
-
-        Parameters
-        ----------
-        service_key_bytes: [bytes]
-            the content of the service account encoded with base64
-
-        Returns
-        -------
-        str:
-            google cloud service account content
-        """
-        service_key = json.loads(base64.b64decode(service_key_bytes).decode())
-        return service_key

@@ -17,7 +17,7 @@ def test_create_chirps_object(
     lon_bounds: List,
     chirps_base_dir: str,
 ):
-    Coello = CHIRPS(
+    coello = CHIRPS(
         start=dates[0],
         end=dates[1],
         lat_lim=lat_bounds,
@@ -26,13 +26,13 @@ def test_create_chirps_object(
         temporal_resolution=daily_temporal_resolution,
         path=chirps_base_dir,
     )
-    assert Coello.api_url == "data.chc.ucsb.edu"
-    assert Coello.lon_boundaries == [-180, 180]
-    assert Coello.lat_bondaries == [-50, 50]
-    assert str(Coello.dates[0].date()) == dates[0]
-    assert str(Coello.dates[-1].date()) == dates[1]
+    assert coello.api_url == "data.chc.ucsb.edu"
+    assert coello.lon_bounds == [-180, 180]
+    assert coello.lat_bounds == [-50, 50]
+    assert str(coello.time["start_date"].date()) == dates[0]
+    assert str(coello.time["end_date"].date()) == dates[1]
 
-    return Coello
+    return coello
 
 
 def test_download(
